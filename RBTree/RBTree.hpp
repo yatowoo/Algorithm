@@ -43,15 +43,16 @@ public:
   void InsertFixup(Node_t *node);
   void Print();
   void Traverse();
-  void TraverseMid(Node_t*);
-  void TraverseLeft(Node_t*);
-  void TraverseRight(Node_t*);
+  void TraverseMid(Node_t *);
+  void TraverseLeft(Node_t *);
+  void TraverseRight(Node_t *);
   bool Delete(int key);
-  bool RotateLeft(Node_t*);
-  bool RotateRight(Node_t*);
+  bool RotateLeft(Node_t *);
+  bool RotateRight(Node_t *);
 
 public: // Only for DEBUG
-  Node_t* fRoot;
+  Node_t *fRoot;
+  Node_t *fNIL;
   unsigned short fPtrNow;
   Node_t *fTree[MAX_CAPACITY];
 };
@@ -61,14 +62,20 @@ RBTree::RBTree(Node_t *node)
   fTree[0] = node;
   fRoot = node;
   fPtrNow = 1;
+
+  fNIL = new Node_t(-1,'\0');
+
   fRoot->IsRed = false;
-  fRoot->Parent = NULL;
-  fRoot->Left = NULL;
-  fRoot->Right = NULL;
+  fRoot->Parent = fNIL;
+  fRoot->Left = fNIL;
+  fRoot->Right = fNIL;
+
+
 }
 
 RBTree::~RBTree()
 {
+  delete fNIL;
   for (int i = 0; i < fPtrNow; i++)
     delete fTree[i];
 }
@@ -91,33 +98,41 @@ bool RBTree::Insert(Node_t *node)
       location = parent->Left;
     else
       location = parent->Right;
-  } while (location != NULL);
+  } while (location != fNIL);
 
   node->Parent = parent;
   if (node->Key() <= parent->Key())
     parent->Left = node;
   else
     parent->Right = node;
-  
-  node->IsRed = true;
 
-  //InsertFixup(node);
+  node->IsRed = true;
+  node->Left = fNIL;
+  node->Right = fNIL;
+
+  InsertFixup(node);
 
   return true;
 }
 
-void RBTree::InsertFixup(Node_t* node){
-  while(node->Parent->IsRed){
-    if(node->Parent == node->Parent->Parent->Left){
+void RBTree::InsertFixup(Node_t *node)
+{
+  while (node->Parent->IsRed)
+  {
+    if (node->Parent == node->Parent->Parent->Left)
+    {
       // case 1
-      Node_t* ptr = node->Parent->Parent->Left;
-      if(ptr->IsRed){
+      Node_t *ptr = node->Parent->Parent->Left;
+      if (ptr->IsRed)
+      {
         node->Parent->IsRed = false;
         ptr->IsRed = false;
         node = node->Parent->Parent;
       }
-      else{
-        if(node == node->Parent->Right){
+      else
+      {
+        if (node == node->Parent->Right)
+        {
           // case 2
           node = node->Parent;
           RotateLeft(node);
@@ -126,17 +141,22 @@ void RBTree::InsertFixup(Node_t* node){
         node->Parent->IsRed = false;
         node->Parent->Parent->IsRed = true;
         RotateRight(node->Parent->Parent);
-    }// node parent IS left child
-    else{
+      }
+    } // node parent IS left child
+    else
+    {
       // case 1
-      Node_t* ptr = node->Parent->Parent->Right;
-      if(ptr->IsRed){
+      Node_t *ptr = node->Parent->Parent->Right;
+      if (ptr->IsRed)
+      {
         node->Parent->IsRed = false;
         ptr->IsRed = false;
         node = node->Parent->Parent;
       }
-      else{
-        if(node == node->Parent->Left){
+      else
+      {
+        if (node == node->Parent->Left)
+        {
           // case 2
           node = node->Parent;
           RotateRight(node);
@@ -145,12 +165,11 @@ void RBTree::InsertFixup(Node_t* node){
         node->Parent->IsRed = false;
         node->Parent->Parent->IsRed = true;
         RotateLeft(node->Parent->Parent);
+      } 
     }// node parent IS right child
-
-    }
-    break;
-  }
-}
+  }// while node->Parent->IsRed
+  fRoot->IsRed = false;
+}// InsertFixup
 
 void RBTree::Print()
 {
@@ -160,12 +179,12 @@ void RBTree::Print()
          << fTree[i]->Key() << "," << fTree[i]->Data()
          << ") "
          << " : ";
-    if (fTree[i]->Left)
+    if (fTree[i]->Left != fNIL)
       cout << fTree[i]->Left->Key();
     else
       cout << "NULL";
     cout << " , ";
-    if (fTree[i]->Right)
+    if (fTree[i]->Right != fNIL)
       cout << fTree[i]->Right->Key();
     else
       cout << "NULL";
@@ -173,60 +192,69 @@ void RBTree::Print()
   }
 }
 
-void RBTree::Traverse(){
+void RBTree::Traverse()
+{
   TraverseLeft(fRoot);
 }
 
-void RBTree::TraverseLeft(Node_t* node){
-  if(node->Left)
+void RBTree::TraverseLeft(Node_t *node)
+{
+  if (node->Left != fNIL)
     TraverseLeft(node->Left);
-  cout << "(" << node->Key() << "," << node->Data() << ")" << endl;
-  if(node->Right)
+  cout << "(" << node->Key() << "," << node->Data() 
+    << "," << node->IsRed << ")" << endl;
+  if (node->Right != fNIL)
     TraverseLeft(node->Right);
 }
 
-void RBTree::TraverseRight(Node_t* node){
-  if(node->Right)
+void RBTree::TraverseRight(Node_t *node)
+{
+  if (node->Right != fNIL)
     TraverseRight(node->Right);
-  cout << "(" << node->Key() << "," << node->Data() << ")" << endl;
-  if(node->Left)
+  cout << "(" << node->Key() << "," << node->Data() 
+    << "," << node->IsRed << ")" << endl;
+  if (node->Left != fNIL)
     TraverseRight(node->Left);
 }
 
-void RBTree::TraverseMid(Node_t* node){
-  cout << "(" << node->Key() << "," << node->Data() << ")" << endl;
-  if(node->Left)
+void RBTree::TraverseMid(Node_t *node)
+{
+  cout << "(" << node->Key() << "," << node->Data() 
+    << "," << node->IsRed << ")" << endl;
+  if (node->Left != fNIL)
     TraverseMid(node->Left);
   else
     cout << "NULL" << endl;
-  if(node->Right)
+  if (node->Right != fNIL)
     TraverseMid(node->Right);
   else
     cout << "NULL" << endl;
 }
 
-bool RBTree::RotateLeft(Node_t* node){
-  if(node->Right == NULL)
+bool RBTree::RotateLeft(Node_t *node)
+{
+  if (node->Right == fNIL)
     return false;
-  Node_t* ptr = node->Right;
+  Node_t *ptr = node->Right;
   node->Right = ptr->Left;
   ptr->Left = node;
   ptr->Parent = node->Parent;
   node->Parent = ptr;
-  if(fRoot == node)
+  if (fRoot == node)
     fRoot = ptr;
   return true;
 }
 
-bool RBTree::RotateRight(Node_t* node){
-  if(node->Left == NULL)
+bool RBTree::RotateRight(Node_t *node)
+{
+  if (node->Left == fNIL)
     return false;
-  Node_t* ptr = node->Left;
+  Node_t *ptr = node->Left;
   node->Left = ptr->Right;
   ptr->Right = node;
   ptr->Parent = node->Parent;
   node->Parent = ptr;
-  if(fRoot == node)
+  if (fRoot == node)
     fRoot = ptr;
   return true;
 }

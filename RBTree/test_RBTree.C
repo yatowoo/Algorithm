@@ -3,19 +3,24 @@
 
 #include "RBTree.hpp"
 
-RBTree* rb;
+RBTree* rb; // for ROOT CINT use
+
+void RandomInsert(RBTree* rb, int num){
+    Node_t* node = NULL;
+    for(int i = 0 ; i < num ; i ++){
+        node = new Node_t(
+            (int)gRandom->Uniform(0,100),
+            'b'+i);
+        rb->Insert(node);
+    }    
+}
 
 int test_RBTree(){
 
     Node_t* node = new Node_t(50,'a');
     rb = new RBTree(node);
 
-    for(int i = 0 ; i < 10 ; i ++){
-        node = new Node_t(
-            (int)gRandom->Uniform(0,100),
-            'b'+i);
-        rb->Insert(node);
-    }
+    RandomInsert(rb, 4);
 
     rb->TraverseMid(rb->fRoot);
 

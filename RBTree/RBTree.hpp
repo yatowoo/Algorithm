@@ -179,17 +179,14 @@ void RBTree::Print()
   {
     cout << "("
          << fTree[i]->Key() << "," << fTree[i]->Data()
+         << "," << fTree[i]->IsRed
          << ") "
          << " : ";
-    if (fTree[i]->Left != fNIL)
-      cout << fTree[i]->Left->Key();
-    else
-      cout << "NULL";
-    cout << " , ";
-    if (fTree[i]->Right != fNIL)
-      cout << fTree[i]->Right->Key();
-    else
-      cout << "NULL";
+    cout << fTree[i]->Parent->Key()
+      << " , "
+      << fTree[i]->Left->Key()
+      << " , "
+      << fTree[i]->Right->Key();
     cout << endl;
   }
 }
@@ -247,14 +244,21 @@ bool RBTree::RotateLeft(Node_t *node)
   if (node->Right == fNIL)
     return false;
   Node_t *ptr = node->Right;
+  
   node->Right = ptr->Left;
+  if(ptr->Left != fNIL)
+    ptr->Left->Parent = node;
   ptr->Left = node;
+
   ptr->Parent = node->Parent;
-  if(node == node->Parent->Left)
-    node->Parent->Left = ptr;
-  else
-    node->Parent->Right = ptr;
+  if(node->Parent != fNIL){
+    if(node == node->Parent->Left)
+      node->Parent->Left = ptr;
+    else
+      node->Parent->Right = ptr;
+  }
   node->Parent = ptr;
+  
   if (fRoot == node)
     fRoot = ptr;
 // DEBUG
@@ -283,13 +287,18 @@ bool RBTree::RotateRight(Node_t *node)
   if (node->Left == fNIL)
     return false;
   Node_t *ptr = node->Left;
+
   node->Left = ptr->Right;
+  if(ptr->Right != fNIL)
+    ptr->Right->Parent = node;
   ptr->Right = node;
   ptr->Parent = node->Parent;
-  if(node == node->Parent->Left)
-    node->Parent->Left = ptr;
-  else
-    node->Parent->Right = ptr;
+  if(node->Parent != fNIL){
+    if(node == node->Parent->Left)
+      node->Parent->Left = ptr;
+    else
+      node->Parent->Right = ptr;
+  }
   node->Parent = ptr;
   if (fRoot == node)
     fRoot = ptr;

@@ -122,12 +122,13 @@ void RBTree::InsertFixup(Node_t *node)
     if (node->Parent == node->Parent->Parent->Left)
     {
       // case 1
-      Node_t *ptr = node->Parent->Parent->Left;
+      Node_t *ptr = node->Parent->Parent->Right;
       if (ptr->IsRed)
       {
         node->Parent->IsRed = false;
         ptr->IsRed = false;
         node = node->Parent->Parent;
+        node->IsRed = true;
       }
       else
       {
@@ -146,12 +147,13 @@ void RBTree::InsertFixup(Node_t *node)
     else
     {
       // case 1
-      Node_t *ptr = node->Parent->Parent->Right;
+      Node_t *ptr = node->Parent->Parent->Left;
       if (ptr->IsRed)
       {
         node->Parent->IsRed = false;
         ptr->IsRed = false;
         node = node->Parent->Parent;
+        node->IsRed = true;
       }
       else
       {
@@ -233,29 +235,73 @@ void RBTree::TraverseMid(Node_t *node)
 
 bool RBTree::RotateLeft(Node_t *node)
 {
+// DEBUG
+  cout << "[+] DEBUG - RotateLeft Begin" << endl;
+  cout << "RotateNode : ";
+  cout << "(" << node->Key() << "," << node->Data() 
+    << "," << node->IsRed << ")" << endl;
+  cout << "Tree Now :";
+  TraverseMid(fRoot);
+  cout << "[-] DEBUG - END" << endl;
+// DEBUG
   if (node->Right == fNIL)
     return false;
   Node_t *ptr = node->Right;
   node->Right = ptr->Left;
   ptr->Left = node;
   ptr->Parent = node->Parent;
+  if(node == node->Parent->Left)
+    node->Parent->Left = ptr;
+  else
+    node->Parent->Right = ptr;
   node->Parent = ptr;
   if (fRoot == node)
     fRoot = ptr;
+// DEBUG
+  cout << "[+] DEBUG - RotateLeft Over" << endl;
+  cout << "RotateNode : ";
+  cout << "(" << node->Key() << "," << node->Data() 
+    << "," << node->IsRed << ")" << endl;
+  cout << "Tree Now :";
+  TraverseMid(fRoot);
+  cout << "[-] DEBUG - END" << endl;
+// DEBUG
   return true;
 }
 
 bool RBTree::RotateRight(Node_t *node)
 {
+// DEBUG
+  cout << "[+] DEBUG - RotateRight Begin" << endl;
+  cout << "RotateNode : ";
+  cout << "(" << node->Key() << "," << node->Data() 
+    << "," << node->IsRed << ")" << endl;
+  cout << "Tree Now :";
+  TraverseMid(fRoot);
+  cout << "[-] DEBUG - END" << endl;
+// DEBUG
   if (node->Left == fNIL)
     return false;
   Node_t *ptr = node->Left;
   node->Left = ptr->Right;
   ptr->Right = node;
   ptr->Parent = node->Parent;
+  if(node == node->Parent->Left)
+    node->Parent->Left = ptr;
+  else
+    node->Parent->Right = ptr;
   node->Parent = ptr;
   if (fRoot == node)
     fRoot = ptr;
+// DEBUG
+  cout << "[+] DEBUG - RotateRight Over" << endl;
+  cout << "RotateNode : ";
+  cout << "(" << node->Key() << "," << node->Data() 
+    << "," << node->IsRed << ")" << endl;
+  cout << "Tree Now :";
+  TraverseMid(fRoot);
+  cout << "[-] DEBUG - END" << endl;
+// DEBUG
   return true;
 }
 

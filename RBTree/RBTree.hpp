@@ -46,9 +46,14 @@ public:
   void TraverseMid(Node_t *);
   void TraverseLeft(Node_t *);
   void TraverseRight(Node_t *);
-  bool Delete(int key);
   bool RotateLeft(Node_t *);
   bool RotateRight(Node_t *);
+  Node_t* GetSuccessor(Node_t*);
+  Node_t* GetPredecessor(Node_t*);
+  Node_t* GetMinimum(Node_t*);
+  Node_t* GetMaximum(Node_t*);
+  bool Delete(Node_t*);
+  bool Delete(int key);
 
 public: // Only for DEBUG
   Node_t *fRoot;
@@ -232,19 +237,11 @@ void RBTree::TraverseMid(Node_t *node)
 
 bool RBTree::RotateLeft(Node_t *node)
 {
-// DEBUG
-  cout << "[+] DEBUG - RotateLeft Begin" << endl;
-  cout << "RotateNode : ";
-  cout << "(" << node->Key() << "," << node->Data() 
-    << "," << node->IsRed << ")" << endl;
-  cout << "Tree Now :";
-  TraverseMid(fRoot);
-  cout << "[-] DEBUG - END" << endl;
-// DEBUG
+
   if (node->Right == fNIL)
     return false;
-  Node_t *ptr = node->Right;
   
+  Node_t *ptr = node->Right;
   node->Right = ptr->Left;
   if(ptr->Left != fNIL)
     ptr->Left->Parent = node;
@@ -261,33 +258,16 @@ bool RBTree::RotateLeft(Node_t *node)
   
   if (fRoot == node)
     fRoot = ptr;
-// DEBUG
-  cout << "[+] DEBUG - RotateLeft Over" << endl;
-  cout << "RotateNode : ";
-  cout << "(" << node->Key() << "," << node->Data() 
-    << "," << node->IsRed << ")" << endl;
-  cout << "Tree Now :";
-  TraverseMid(fRoot);
-  cout << "[-] DEBUG - END" << endl;
-// DEBUG
+
   return true;
 }
 
 bool RBTree::RotateRight(Node_t *node)
 {
-// DEBUG
-  cout << "[+] DEBUG - RotateRight Begin" << endl;
-  cout << "RotateNode : ";
-  cout << "(" << node->Key() << "," << node->Data() 
-    << "," << node->IsRed << ")" << endl;
-  cout << "Tree Now :";
-  TraverseMid(fRoot);
-  cout << "[-] DEBUG - END" << endl;
-// DEBUG
   if (node->Left == fNIL)
     return false;
-  Node_t *ptr = node->Left;
 
+  Node_t *ptr = node->Left;
   node->Left = ptr->Right;
   if(ptr->Right != fNIL)
     ptr->Right->Parent = node;
@@ -300,18 +280,86 @@ bool RBTree::RotateRight(Node_t *node)
       node->Parent->Right = ptr;
   }
   node->Parent = ptr;
+
   if (fRoot == node)
     fRoot = ptr;
-// DEBUG
-  cout << "[+] DEBUG - RotateRight Over" << endl;
-  cout << "RotateNode : ";
-  cout << "(" << node->Key() << "," << node->Data() 
-    << "," << node->IsRed << ")" << endl;
-  cout << "Tree Now :";
-  TraverseMid(fRoot);
-  cout << "[-] DEBUG - END" << endl;
-// DEBUG
+
   return true;
 }
 
+Node_t* RBTree::GetMinimum(Node_t* node){
+  if(node == fNIL)
+    return fNIL;
+  while(node->Left != fNIL)
+    node = node->Left;
+  return node;
+}
+
+Node_t* RBTree::GetMaximum(Node_t* node){
+  if(node == fNIL)
+    return fNIL;
+  while(node->Right != fNIL)
+    node = node->Right;
+  return node;
+}
+
+
+Node_t* RBTree::GetSuccessor(Node_t* node){
+  if(node->Right != fNIL)
+    return GetMinimum(node->Right);
+  Node_t* ptr = node->Parent;
+  while(ptr!=NULL && node == ptr->Right){
+    node = ptr;
+    ptr = node->Parent;
+  }
+  return ptr;
+}
+
+Node_t* RBTree::GetPredecessor(Node_t* node){
+  if(node->Left != fNIL)
+    return GetMaximum(node->Left);
+  Node_t* ptr = node->Parent;
+  while(ptr!=NULL && node == ptr->Left){
+    node = ptr;
+    ptr = node->Parent;
+  }
+  return ptr;
+}
+
+bool RBTree::Delete(Node_t* node){
+  Node_t* ptr = NULL; // who replace node
+  if(node->Left == fNIL && node->Right == fNIL)
+    ptr = fNIL;
+  else if(node->Left == fNIL)// case 2
+    ptr = node->Right;
+  else if(node->Right == fNIL)// case 2
+    ptr = node->Left;
+  else{
+    ptr = GetSuccessor(node);
+    if(ptr == node->Right){ // case 3
+      ptr->Left = node->Left;
+      node->Left->Parent = ptr;
+    }// case 3 
+    else{// case 4
+      ptr->Parent->Left = ptr->Right;
+      ptr->Left = node->Left;
+      node->Left->Parent = ptr;
+      ptr->Right = node->Right;
+      node->Right->Parent = ptr;
+      if(ptr->Right != fNIL)
+        ptr->Right->Parent = ptr->Parent;
+    }// case 4
+  }
+
+  ptr->Parent = node->Parent;
+  if(node->Parent == fNIL){
+    fRoot = ptr;
+  }
+  else if(node == node->Parent->Left)
+    node->Parent->Left = ptr;
+  else
+    node->Parent->Right = ptr;
+  
+  return true;
+}
 #endif // YATO_RBTree_h
